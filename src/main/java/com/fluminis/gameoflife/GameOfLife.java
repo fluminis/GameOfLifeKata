@@ -2,6 +2,9 @@ package com.fluminis.gameoflife;
 
 public class GameOfLife {
 
+	private static final byte DEAD_CELL = (byte) 0;
+	private static final byte ALIVE_CELL = (byte) 1;
+
 	private int rowCount;
 	private int columnCount;
 	private byte[][] game;
@@ -17,9 +20,18 @@ public class GameOfLife {
 		for (int y = 1; y < lines.length; y++) {
 			String line = lines[y];
 			for (int x = 0; x < line.length(); x++) {
-				game[y][x + 1] = (byte) (line.charAt(x) == '*' ? 1 : 0);
+				byte cellState = (byte) (line.charAt(x) == '*' ? 1 : 0);
+				setCellState(y - 1, x, cellState);
 			}
 		}
+	}
+
+	void setCellState(int row, int column, byte cellState) {
+		game[row + 1][column + 1] = cellState;
+	}
+
+	byte cellState(int row, int column) {
+		return game[row + 1][column + 1];
 	}
 
 	private GameOfLife(byte[][] game, int rowCount, int columnCount) {
@@ -75,29 +87,6 @@ public class GameOfLife {
 		return line1 + line2 + line3;
 	}
 
-	byte nextGeneration(int row, int column) {
-		byte current = game[row + 1][column + 1];
-		int aliveNeighbours = aliveNeighbours(row, column);
-		if (current == 1) {
-			if (aliveNeighbours < 2 || aliveNeighbours > 3) {
-				// 1. fewer than two live neighbours dies
-				// 2. more than three live neighbours dies
-				return 0;
-			}
-			// 3. with two or three live neighbours lives on to
-			// the next generation.
-			return 1;
-		} else {
-			if (aliveNeighbours == 3) {
-				// 4. Any dead cell with exactly three live neighbours becomes a
-				// live cell.
-				return 1;
-			} else {
-				return 0;
-			}
-		}
-	}
-
 	public GameOfLife nextGeneration() {
 		byte[][] newgame = new byte[rowCount + 2][columnCount + 2];
 		for (int row = 0; row < rowCount; row++) {
@@ -106,5 +95,17 @@ public class GameOfLife {
 			}
 		}
 		return new GameOfLife(newgame, rowCount, columnCount);
+	}
+
+	byte nextGeneration(int row, int column) {
+		int aliveNeighbours = aliveNeighbours(row, column);
+		byte cellState = cellState(row, column);
+		if (cellState == ALIVE_CELL && aliveNeighbours == 2) {
+			return ALIVE_CELL;
+		}
+		if (aliveNeighbours == 3) {
+			return ALIVE_CELL;
+		}
+		return DEAD_CELL;
 	}
 }
